@@ -30,6 +30,7 @@ function closeMenu() {
 function updateHeader() {
   header.classList.toggle("scrolled", window.scrollY > 16);
   header.classList.toggle("plans-header", currentRoute() === "/planos");
+  body.classList.toggle("show-floating-whatsapp", window.innerWidth > 600 || window.scrollY > 420);
 }
 
 function revealVisibleElements() {
@@ -57,8 +58,15 @@ function renderRoute({ smooth = true } = {}) {
   updateHeader();
 
   requestAnimationFrame(() => {
-    document.getElementById(config.target)?.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
-    revealVisibleElements();
+    requestAnimationFrame(() => {
+      const target = document.getElementById(config.target);
+      if (target) {
+        const headerOffset = header.offsetHeight;
+        const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset);
+        window.scrollTo({ top, behavior: smooth ? "smooth" : "auto" });
+      }
+      revealVisibleElements();
+    });
   });
 }
 
@@ -79,6 +87,7 @@ routeLinks.forEach((link) => {
 
 window.addEventListener("hashchange", () => renderRoute());
 window.addEventListener("scroll", updateHeader, { passive: true });
+window.addEventListener("resize", updateHeader, { passive: true });
 
 if (!window.location.hash) window.history.replaceState(null, "", "#/");
 
